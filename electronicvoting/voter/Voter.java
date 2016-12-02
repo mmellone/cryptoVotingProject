@@ -5,6 +5,7 @@ import electronicvoting.ballot.Ballot;
 import electronicvoting.ballot.EncryptedBallot;
 import electronicvoting.ballot.InvalidVoteException;
 import electronicvoting.bulletinboard.BulletinBoard;
+import electronicvoting.bulletinboard.FailedZKPException;
 import electronicvoting.eb.ElectionBoard;
 import electronicvoting.eb.VotingException;
 
@@ -13,8 +14,6 @@ import java.util.Random;
 
 
 public class Voter {
-    private BigInteger signature;
-    private BigInteger blindSigPubKey;
     private int id;
 
     /**
@@ -36,14 +35,6 @@ public class Voter {
     }
 
     /**
-     * Sets the blind signature public key, used by
-     * @param key
-     */
-    public void setBlindSignatureKey(BigInteger key) {
-        blindSigPubKey = key;
-    }
-
-    /**
      * Lets the voter vote for candidate choice in the election governed by eb
      *
      * @param eb The ElectionBoard the voter is registered at
@@ -59,7 +50,7 @@ public class Voter {
         }
 
         // Encrypt vote and get it blind signed
-        EncryptedBallot myEBallot = myBallot.encryptVote(eb.getPaillierPublicKey());
+        EncryptedBallot myEBallot = myBallot.encryptVote(eb.getPublicPaillier());
         BigInteger blindSig;
         try {
             BigInteger r = new BigInteger(2048, new Random());
@@ -72,10 +63,11 @@ public class Voter {
         }
         myEBallot.setSignature(blindSig);
 
-        bb.receiveVote()
+        try {
+            bb.receiveVote(myEBallot, this);
+        } catch (FailedZKPException e) {
+            System.out.println(e.getMessage());
+        }
     }
-
-
-    public BigInteger u()
 
 }

@@ -1,5 +1,7 @@
 package electronicvoting.ballot;
 
+import paillierp.zkp.EncryptionZKP;
+
 import java.math.BigInteger;
 
 /**
@@ -8,6 +10,7 @@ import java.math.BigInteger;
 public class EncryptedBallot {
     private String[] candidates;
     private BigInteger[] votes;
+    private EncryptionZKP[] zkp;
     private BigInteger signature;
 
     /**
@@ -16,10 +19,11 @@ public class EncryptedBallot {
      *
      * @param candidates A list of candidates
      */
-    EncryptedBallot(String[] candidates, BigInteger[] votes) {
+    EncryptedBallot(String[] candidates, BigInteger[] votes, EncryptionZKP[] zkp) {
         this.candidates = candidates.clone();
         this.votes = votes.clone();
         this.signature = null;
+        this.zkp = zkp;
     }
 
     /**
@@ -48,5 +52,9 @@ public class EncryptedBallot {
 
     public BigInteger[] getEncryptedVotes() {
         return votes;
+    }
+
+    public EncryptionZKP[] getZKP() {
+        return zkp;
     }
 }

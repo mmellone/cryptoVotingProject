@@ -3,6 +3,8 @@ package electronicvoting.bulletinboard;
 import electronicvoting.ballot.EncryptedBallot;
 import electronicvoting.paillier.PublicKey;
 import electronicvoting.voter.Voter;
+import paillierp.key.PaillierKey;
+import paillierp.zkp.EncryptionZKP;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -15,43 +17,49 @@ import java.util.Random;
  */
 public class BulletinBoard {
     private List<BigInteger[]> votes;
-    private BigInteger d; // for the blind signature
-    private PublicKey publicKey; // for Paillier
-    private int A;
 
-    public BulletinBoard(BigInteger d, PublicKey pubKey) {
-        this.d = d;
-        this.publicKey = pubKey;
+
+    public BulletinBoard() {
         votes = new ArrayList<>();
-        A = 10;
     }
 
     /**
      * Adds the ballot to the nxm votes matrix (votes)
      * @param ballot The ballot to count
      */
-    public void receiveVote(EncryptedBallot ballot, Voter voter) {
+    public void receiveVote(EncryptedBallot ballot, Voter voter) throws FailedZKPException {
         BigInteger[] vote = ballot.getEncryptedVotes();
-        if (!ZKP(vote, voter)) {
-
+        System.out.println("Voter " + voter.getID());
+        for (BigInteger v: vote) {
+            System.out.print("\tVote: " + v);
         }
-
+        System.out.println();
+        EncryptionZKP[] zkp = ballot.getZKP();
+        for (EncryptionZKP p : zkp) {
+            if (!p.verify()) {
+                throw new FailedZKPException("The ZKP failed for this voter");
+            }
+        }
         votes.add(vote);
 
     }
 
-    /**
-     * Performs a zero-knowledge proof to make sure the voter knows the plaintext
-     * @param vote The vote to check
-     * @return true if the voter knows the plaintext, false otherwise
-     */
-    public boolean ZKP (BigInteger[] vote, Voter voter) {
-        BigInteger e = new BigInteger(A, new Random());
 
-    }
+    public BigInteger[] countVotes(BigInteger N) {
+        if (votes.size() == 0) {
+            return null;
+        }
+        BigInteger[] sums = votes.get(0);
+        for (int i = 1; i < votes.size(); i++) {
+            for (int j = 0; j < votes.get(i).length; j++) {
+                sums[j] = sums[j].multiply(votes.get(i)[j]).mod(N.pow(2));
 
+            }
 
-    public BigInteger[] addUpVotes () {
-
+        }
+        for (BigInteger sum : sums) {
+            System.out.println("Sum = " + sum);
+        }
+        return sums;
     }
 }

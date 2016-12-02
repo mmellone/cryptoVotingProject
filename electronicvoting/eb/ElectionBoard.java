@@ -3,11 +3,12 @@ package electronicvoting.eb;
 
 import electronicvoting.ballot.Ballot;
 import electronicvoting.ballot.BallotFactory;
-import electronicvoting.paillier.PaillierKeyPair;
-import electronicvoting.paillier.PrivateKey;
-import electronicvoting.paillier.PublicKey;
+import electronicvoting.bulletinboard.BulletinBoard;
 import electronicvoting.voter.Voter;
-import electronicvoting.paillier.Paillier;
+import paillierp.KeyGen;
+import paillierp.Paillier;
+import paillierp.key.PaillierKey;
+import paillierp.key.PaillierPrivateKey;
 
 import java.math.BigInteger;
 import java.security.KeyFactory;
@@ -19,6 +20,7 @@ import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class ElectionBoard {
     /**
@@ -26,8 +28,8 @@ public class ElectionBoard {
      */
     private Map<Integer, Boolean> hasVotedList;
     private BallotFactory ballotFactory;
-    private PublicKey paillierPublicKey;
-    private PrivateKey paillierPrivateKey;
+    private Paillier publicPaillier;
+    private Paillier privatePaillier;
     private BigInteger n, e, d; // RSA keys for blind signature
 
 
@@ -43,9 +45,11 @@ public class ElectionBoard {
         hasVotedList = new HashMap<>();
         generateRSAKeys();
         ballotFactory = new BallotFactory(candidates);
-        PaillierKeyPair paillierKeys = Paillier.generateKeyPair();
-        paillierPrivateKey = paillierKeys.privateKey;
-        paillierPublicKey = paillierKeys.publicKey;
+        Random gen = new Random();
+        PaillierPrivateKey pKey = KeyGen.PaillierKey(128, gen.nextLong());
+        publicPaillier = new Paillier(pKey.getPublicKey());
+        privatePaillier = new Paillier(pKey.getPublicKey());
+        privatePaillier.setDecryption(pKey);
     }
 
     /**
@@ -86,10 +90,10 @@ public class ElectionBoard {
     }
 
     /**
-     * @return The paillier public key for this encryption
+     * @return The paillier public encryption service
      */
-    public PublicKey getPaillierPublicKey() {
-        return paillierPublicKey.clone();
+    public Paillier getPublicPaillier() {
+        return publicPaillier;
     }
 
     /**
@@ -106,6 +110,13 @@ public class ElectionBoard {
         return n;
     }
 
+    /**
+     * @return The N value used for Paillier encryption
+     */
+    public BigInteger getN() {
+        return publicPaillier.getPublicKey().getN();
+    }
+
 
     /**
      * Registers a voter with this election board
@@ -118,10 +129,9 @@ public class ElectionBoard {
             throw new AlreadyRegisteredException("Voter " + newVoter.getID() + " has already registered.");
         }
         hasVotedList.put(newVoter.getID(), false);
-        newVoter.setBlindSignatureKey(e);
     }
 
-
+    
     public BigInteger blindSign(BigInteger blindVote, int voterID) throws VotingException{
         if (hasVotedList.get(voterID) == null) {
             // If the voter is not registered
@@ -133,6 +143,15 @@ public class ElectionBoard {
         // If the voter is registered and not already voted then mark them as voted and return the signature
         hasVotedList.put(voterID, true);
         return blindVote.modPow(d, n);
+    }
+
+    public BigInteger[] decryptResults(BigInteger[] encryptedResults) {
+        BigInteger[] results = new BigInteger[encryptedResults.length];
+        for (int i = 0; i < encryptedResults.length; i++) {
+            results[i] = privatePaillier.decrypt(encryptedResults[i]);
+//            System.out.println("Result: " + results[i]);
+        }
+        return results;
     }
 }
 

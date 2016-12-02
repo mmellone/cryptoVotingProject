@@ -1,7 +1,9 @@
 package electronicvoting.ballot;
 
+import paillierp.Paillier;
+import paillierp.zkp.EncryptionZKP;
+
 import java.math.BigInteger;
-import electronicvoting.paillier.*;
 
 /**
  * "Plaintext" representation of a ballot
@@ -60,21 +62,21 @@ public class Ballot {
 
     /**
      * Encrypts all of the votes on the ballot and returns
-     * @param publicKey
-     * @return
+     * @param encryptionService The service used to encrypt the votes
+     * @return An encrypted array of votes
      */
-    public EncryptedBallot encryptVote(PublicKey publicKey) {
+    public EncryptedBallot encryptVote(Paillier encryptionService) {
         BigInteger[] encryptedVotes = new BigInteger[votes.length];
-
+        EncryptionZKP[] zkp = new EncryptionZKP[votes.length];
         for (int i = 0; i < votes.length; i++) {
-            BigInteger ctxt;
             if (votes[i] == 1) {
-                ctxt = Paillier.encrypt(BigInteger.ONE, publicKey);
+                encryptedVotes[i] = encryptionService.encrypt(BigInteger.ONE);
+                zkp[i] = encryptionService.encryptProof(BigInteger.ONE);
             } else {
-                ctxt = Paillier.encrypt(BigInteger.ZERO, publicKey);
+                encryptedVotes[i] = encryptionService.encrypt(BigInteger.ZERO);
+                zkp[i] = encryptionService.encryptProof(BigInteger.ZERO);
             }
-            encryptedVotes[i] = ctxt;
         }
-        return new EncryptedBallot(candidates, encryptedVotes);
+        return new EncryptedBallot(candidates, encryptedVotes, zkp);
     }
 }
