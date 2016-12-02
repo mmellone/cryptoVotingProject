@@ -3,11 +3,9 @@ package electronicvoting.eb;
 
 import electronicvoting.ballot.Ballot;
 import electronicvoting.ballot.BallotFactory;
-import electronicvoting.bulletinboard.BulletinBoard;
 import electronicvoting.voter.Voter;
 import paillierp.KeyGen;
 import paillierp.Paillier;
-import paillierp.key.PaillierKey;
 import paillierp.key.PaillierPrivateKey;
 
 import java.math.BigInteger;
@@ -22,16 +20,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * The ElectionBoard hands out ballots, keeps track of voters, blind signs ballots, and holds the private encryption keys
+ */
 public class ElectionBoard {
-    /**
-     * Map of voterIDs (integers) to a boolean stating whether or not they voted
-     */
-    private Map<Integer, Boolean> hasVotedList;
+    private Map<Integer, Boolean> hasVotedList; // Map of voterIDs (integers) to a boolean stating whether or not they voted
     private BallotFactory ballotFactory;
     private Paillier publicPaillier;
     private Paillier privatePaillier;
     private BigInteger n, e, d; // RSA keys for blind signature
-
 
 
     /**
@@ -85,6 +82,9 @@ public class ElectionBoard {
         d = privKey.getPrivateExponent();
     }
 
+    /**
+     * @return A blank ballot to give to a voter
+     */
     public Ballot getNewBallot() {
         return ballotFactory.makeEmptyBallot();
     }
@@ -131,7 +131,14 @@ public class ElectionBoard {
         hasVotedList.put(newVoter.getID(), false);
     }
 
-    
+    /**
+     * Returns a blind signature for a BigInteger representation of a ballot
+     *
+     * @param blindVote BigInteger representation of an EncryptedBallot
+     * @param voterID Voters voterid
+     * @return A blind signature
+     * @throws VotingException If the voter does not exist or has already voted
+     */
     public BigInteger blindSign(BigInteger blindVote, int voterID) throws VotingException{
         if (hasVotedList.get(voterID) == null) {
             // If the voter is not registered
@@ -145,11 +152,27 @@ public class ElectionBoard {
         return blindVote.modPow(d, n);
     }
 
+    /**
+     * Checks if the signature matches the message
+     *
+     * @param msg The original message to sign (what would have been originally blind signed, minus the random number)
+     * @param signature The signature the Encrypted Ballot has
+     * @return True if it is a valid signature, false otherwise
+     */
+    public boolean checkSignature(BigInteger msg, BigInteger signature) {
+        return msg.modPow(d, n).equals(signature);
+    }
+
+    /**
+     * Decrypts a result list
+     *
+     * @param encryptedResults A list of encrypted counts of votes for each candidate
+     * @return Plaintext counts of votes
+     */
     public BigInteger[] decryptResults(BigInteger[] encryptedResults) {
         BigInteger[] results = new BigInteger[encryptedResults.length];
         for (int i = 0; i < encryptedResults.length; i++) {
             results[i] = privatePaillier.decrypt(encryptedResults[i]);
-//            System.out.println("Result: " + results[i]);
         }
         return results;
     }

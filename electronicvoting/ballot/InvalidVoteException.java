@@ -1,10 +1,10 @@
 package electronicvoting.ballot;
 
 /**
- * Created by mitchell on 12/1/16.
+ * Thrown if a vote is invalid
  */
 public class InvalidVoteException extends Exception {
-    public InvalidVoteException (String message) {
+    InvalidVoteException (String message) {
         super(message);
     }
 }

@@ -50,10 +50,30 @@ public class EncryptedBallot {
         return signingValue;
     }
 
+    /**
+     * @return Signature attached to this ballot
+     */
+    public BigInteger getSignature() {
+        return signature;
+    }
+
+    /**
+     * @return The list of encrypted votes
+     */
     public BigInteger[] getEncryptedVotes() {
         return votes;
     }
 
+    /**
+     * @return The list of candidates
+     */
+    public String[] getCandidates() {
+        return candidates;
+    }
+
+    /**
+     * @return The attached zkp for this ballot
+     */
     public EncryptionZKP[] getZKP() {
         return zkp;
     }

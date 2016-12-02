@@ -1,7 +1,10 @@
 package electronicvoting.eb;
 
+/**
+ * Thrown if a voter has already been registered
+ */
 public class AlreadyRegisteredException extends Exception {
-    public AlreadyRegisteredException(String message) {
+    AlreadyRegisteredException(String message) {
         super(message);
     }
 }

@@ -1,10 +1,10 @@
 package electronicvoting.bulletinboard;
 
 /**
- * Created by mitchell on 12/1/16.
+ * Thrown if the ZKP validation fails
  */
-public class FailedZKPException extends Exception {
-    public FailedZKPException(String message) {
+class FailedZKPException extends Exception {
+    FailedZKPException(String message) {
         super(message);
     }
 }

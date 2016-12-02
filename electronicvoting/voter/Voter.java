@@ -5,7 +5,6 @@ import electronicvoting.ballot.Ballot;
 import electronicvoting.ballot.EncryptedBallot;
 import electronicvoting.ballot.InvalidVoteException;
 import electronicvoting.bulletinboard.BulletinBoard;
-import electronicvoting.bulletinboard.FailedZKPException;
 import electronicvoting.eb.ElectionBoard;
 import electronicvoting.eb.VotingException;
 
@@ -64,8 +63,8 @@ public class Voter {
         myEBallot.setSignature(blindSig);
 
         try {
-            bb.receiveVote(myEBallot, this);
-        } catch (FailedZKPException e) {
+            bb.receiveVote(myEBallot, eb);
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
