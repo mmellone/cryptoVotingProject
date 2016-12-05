@@ -1,6 +1,3 @@
-package electronicvoting;
-
-
 import electronicvoting.bulletinboard.BulletinBoard;
 import electronicvoting.eb.ElectionBoard;
 import electronicvoting.eb.AlreadyRegisteredException;
