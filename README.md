@@ -20,7 +20,9 @@ is contained in the Voter.vote() method. The BulletinBoard will then check each 
 make sure it is valid, and count up the encrypted votes. This encrypted count can be
 submitted to the ElectionBoard (which holds the Paillier Private key) to be decrypted.
 
-A simple example is shown in the main method of the VotingMain class.
+A simple example is shown in the main method of the VotingMain class. To run, simply cd
+into the top level directory of this project and run "javac VotingMain.java" and then
+"java VotingMain".
 
 We assume that the only mechanism in which someone can vote is though the Voter and
 Ballot classes that we created.
